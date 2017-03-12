@@ -8,7 +8,19 @@ def main():
     args = get_args()
     # image_path = get_image(args)
     image_path = "data/phantom.bmp"
+    image = imread_square(image_path)
+
+
+def imread_square(image_path):
     image = cv2.imread(image_path)
+    if image is None:
+        print('Unable to open image.')
+        sys.exit()
+    width, height = image.shape
+    if width != height:
+        print('Image must be a square.')
+        sys.exit()
+
 
 
 def get_args():
@@ -25,6 +37,9 @@ def get_alpha(args):
     if not alpha:
         print('You must specify alpha angle using --alpha option.')
         sys.exit()
+    if 360 % alpha != 0:
+        print('Alpha angle must be a divider of 360.')
+        sys.exit()
     return alpha
 
 
@@ -40,6 +55,9 @@ def get_range(args):
     range = args.get("detectors", False)
     if not range:
         print('You must specify range using --range option.')
+        sys.exit()
+    if not (0 <= range <= 360):
+        print('Range must be angle between 0 and 360.')
         sys.exit()
     return range
 
