@@ -1,10 +1,14 @@
 import argparse
+import cv2
 
 import sys
 
 
 def main():
     args = get_args()
+    # image_path = get_image(args)
+    image_path = "data/phantom.bmp"
+    image = cv2.imread(image_path)
 
 
 def get_args():
