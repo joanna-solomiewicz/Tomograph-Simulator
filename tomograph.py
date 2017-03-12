@@ -1,14 +1,30 @@
 import argparse
 import cv2
-
 import sys
+import math
 
 
 def main():
     args = get_args()
+    alpha = get_alpha(args)
+    detectors = get_detectors(args)
+    range = get_range(args)
+    image = get_image(args)
     # image_path = get_image(args)
     image_path = "data/phantom.bmp"
     image = imread_square(image_path)
+    print(image)
+
+
+def radon_transform(alpha, detectors, range, image):
+    image_width = 10
+    for emitter_angle in range(0, 360, alpha):
+        emitter_x = math.cos(emitter_angle) * (image_width / 2)
+        emitter_y = math.sin(emitter_angle) * (image_width / 2)
+        step = range / detectors
+        for detector_angle in range(alpha + math.pi - range / 2, alpha + math.pi + range / 2, step):
+            detector_x = math.cos(detector_angle) * (image_width / 2)
+            detector_y = math.cos(detector_angle) * (image_width / 2)
 
 
 def imread_square(image_path):
@@ -20,7 +36,6 @@ def imread_square(image_path):
     if width != height:
         print('Image must be a square.')
         sys.exit()
-
 
 
 def get_args():
@@ -36,9 +51,6 @@ def get_alpha(args):
     alpha = args.get("alpha", False)
     if not alpha:
         print('You must specify alpha angle using --alpha option.')
-        sys.exit()
-    if 360 % alpha != 0:
-        print('Alpha angle must be a divider of 360.')
         sys.exit()
     return alpha
 
