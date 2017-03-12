@@ -9,14 +9,12 @@ def main():
     alpha = get_alpha(args)
     detectors = get_detectors(args)
     range = get_range(args)
-    image = get_image(args)
-    # image_path = get_image(args)
-    image_path = "data/phantom.bmp"
+    image_path = get_image_path(args)
     image = imread_square(image_path)
 
 
 def radon_transform(alpha, detectors, range, image):
-    image_width = 10
+    image_width = image.shape[0]
     for emitter_angle in range(0, 360, alpha):
         emitter_x = math.cos(emitter_angle) * (image_width / 2)
         emitter_y = math.sin(emitter_angle) * (image_width / 2)
@@ -47,7 +45,7 @@ def get_args():
 
 
 def get_alpha(args):
-    alpha = args.get("alpha", False)
+    alpha = float(args.get("alpha", False))
     if not alpha:
         print('You must specify alpha angle using --alpha option.')
         sys.exit()
@@ -55,7 +53,7 @@ def get_alpha(args):
 
 
 def get_detectors(args):
-    detectors = args.get("detectors", False)
+    detectors = int(args.get("detectors", False))
     if not detectors:
         print('You must specify number of detectors using --detectors option.')
         sys.exit()
@@ -63,7 +61,7 @@ def get_detectors(args):
 
 
 def get_range(args):
-    range = args.get("range", False)
+    range = float(args.get("range", False))
     if not range:
         print('You must specify range using --range option.')
         sys.exit()
@@ -73,12 +71,12 @@ def get_range(args):
     return range
 
 
-def get_image(args):
-    image = args.get("image_path", False)
-    if not image:
+def get_image_path(args):
+    image_path = args.get("image_path", False)
+    if not image_path:
         print('You must specify image path using --image_path option.')
         sys.exit()
-    return image
+    return image_path
 
 
 if __name__ == '__main__':
