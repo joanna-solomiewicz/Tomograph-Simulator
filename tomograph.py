@@ -13,7 +13,6 @@ def main():
     # image_path = get_image(args)
     image_path = "data/phantom.bmp"
     image = imread_square(image_path)
-    print(image)
 
 
 def radon_transform(alpha, detectors, range, image):
@@ -64,7 +63,7 @@ def get_detectors(args):
 
 
 def get_range(args):
-    range = args.get("detectors", False)
+    range = args.get("range", False)
     if not range:
         print('You must specify range using --range option.')
         sys.exit()
@@ -75,7 +74,7 @@ def get_range(args):
 
 
 def get_image(args):
-    image = args.get("detectors", False)
+    image = args.get("image_path", False)
     if not image:
         print('You must specify image path using --image_path option.')
         sys.exit()
