@@ -32,7 +32,7 @@ def imread_square(image_path):
     if image is None:
         print('Unable to open image.')
         sys.exit()
-    width, height = image.shape
+    width, height, _ = image.shape
     if width != height:
         print('Image must be a square.')
         sys.exit()
