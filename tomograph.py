@@ -1,10 +1,13 @@
 import argparse
-import matplotlib.pyplot as plt
-import matplotlib.image as img
-from skimage.color import rgb2gray
-import sys
 import math
+import sys
+
+import matplotlib.image as img
+import matplotlib.pyplot as plt
 import numpy as np
+from skimage.color import rgb2gray
+import skimage.draw as draw
+from scipy.spatial import distance
 
 
 def main():
@@ -17,47 +20,33 @@ def main():
     plt.imshow(image)
     plt.show()
     image_sinogram = radon_transform(alpha, detectors_number, detectors_range, image)
+
     plt.imshow(image_sinogram)
+
     plt.show()
-    # image_after = image_from_sinogram(detectors_range, image_sinogram, image.shape[0])
-    # plt.imshow(np.array(image_after))
-    # plt.show()
-
-
-# def image_from_sinogram(detectors_range, sinogram, image_width):
-#     emitters_number, detectors_number = sinogram.shape
-#     alpha = 360 / emitters_number
-#     image = np.zeros((image_width, image_width))
-#     for i, emitter_angle in enumerate(np.arange(0, 360, alpha)):
-#         emitter_x = image_width / 2 + math.cos(math.radians(emitter_angle)) * (image_width / 2)
-#         emitter_y = image_width / 2 + math.sin(math.raemitter_angle) * (image_width / 2)
-#         for j, detector_angle in enumerate(np.linspace(emitter_angle + math.pi - detectors_range / 2,
-#                                                        emitter_angle + math.pi + detectors_range / 2,
-#                                                        detectors_number)):
-#             detector_x = image_width / 2 + math.cos(detector_angle) * (image_width / 2)
-#             detector_y = image_width / 2 + math.sin(detector_angle) * (image_width / 2)
-#             line_points = get_bresenham_line((int(emitter_x), int(emitter_y)),
-#                                              (int(detector_x), int(detector_y)))
-#             for point in line_points:
-#                 image[point[0] - 1, point[1] - 1] += sinogram[i, j]
-#     return np.array(image)
-
 
 def radon_transform(alpha, detectors_number, detectors_range, image):
     image_width = image.shape[0]
     sinogram = []
     for emitter_angle in np.arange(0, 360, alpha):
         emitter_x = image_width / 2 + math.cos(math.radians(emitter_angle)) * (image_width / 2)
-        emitter_y = image_width / 2 + math.sin(math.radians(emitter_angle)) * (image_width / 2)
+        emitter_y = image_width / 2 - math.sin(math.radians(emitter_angle)) * (image_width / 2)
         sinogram_line = []
         for detector_angle in np.linspace(emitter_angle + math.degrees(math.pi) - detectors_range / 2,
                                           emitter_angle + math.degrees(math.pi) + detectors_range / 2,
                                           detectors_number):
             detector_x = image_width / 2 + math.cos(math.radians(detector_angle)) * (image_width / 2)
-            detector_y = image_width / 2 + math.sin(math.radians(detector_angle)) * (image_width / 2)
-            line_points = get_bresenham_line((int(emitter_x), int(emitter_y)),
-                                             (int(detector_x), int(detector_y)))
-            sinogram_line.append(sum([image[point[0] - 1, point[1] - 1] for point in line_points]))
+            detector_y = image_width / 2 - math.sin(math.radians(detector_angle)) * (image_width / 2)
+            # line_points = get_bresenham_line((int(emitter_x), int(emitter_y)), TODO FIX
+            #                                  (int(detector_x), int(detector_y)))
+
+            line_x, line_y = draw.line(int(emitter_x), int(emitter_y), int(detector_x), int(detector_y))
+            line_points = list(zip(line_x, line_y))
+
+            normalization_factor = distance.euclidean((emitter_x, emitter_y), (detector_x, detector_y)) \
+                                   / len(line_points) / image_width
+            pixel_sum = sum([image[point[0] - 1, point[1] - 1] for point in line_points]) * normalization_factor
+            sinogram_line.append(pixel_sum)
         sinogram.append(sinogram_line)
     return np.array(sinogram)
 
@@ -66,13 +55,13 @@ def get_bresenham_line(point_start, point_end):
     points = []
     x_start, y_start = point_start
     x_end, y_end = point_end
-    dx = abs(x_end - x_start)
-    dy = abs(y_end - y_start)
+    dx = x_end - x_start
+    dy = y_end - y_start
     x, y = x_start, y_start
     sx = -1 if x_start > x_end else 1
     sy = -1 if y_start > y_end else 1
 
-    if dx > dy:  # lower half
+    if abs(dx) > abs(dy):  # lower half
         a = dy / dx
         b = y_start - a * x_start
         while x != x_end:
