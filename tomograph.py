@@ -9,7 +9,6 @@ import skimage.draw as draw
 from scipy.spatial import distance
 
 
-
 def radon_transform(alpha, detectors_number, detectors_range, image):
     image_width = image.shape[0]
     sinogram = []
@@ -22,11 +21,10 @@ def radon_transform(alpha, detectors_number, detectors_range, image):
                                           detectors_number):
             detector_x = image_width / 2 + math.cos(math.radians(detector_angle)) * (image_width / 2)
             detector_y = image_width / 2 - math.sin(math.radians(detector_angle)) * (image_width / 2)
-            # line_points = get_bresenham_line((int(emitter_x), int(emitter_y)), TODO FIX
-            #                                  (int(detector_x), int(detector_y)))
+            line_points = get_bresenham_line((int(emitter_x), int(emitter_y)), (int(detector_x), int(detector_y)))
 
-            line_x, line_y = draw.line(int(emitter_x), int(emitter_y), int(detector_x), int(detector_y))
-            line_points = list(zip(line_x, line_y))
+            # line_x, line_y = draw.line(int(emitter_x), int(emitter_y), int(detector_x), int(detector_y))
+            # line_points = list(zip(line_x, line_y))
 
             normalization_factor = distance.euclidean((emitter_x, emitter_y), (detector_x, detector_y)) \
                                    / len(line_points) / image_width
@@ -54,8 +52,13 @@ def get_bresenham_line(point_start, point_end):
             x += sx
             y_real = a * x + b
             y_middle = y + sy / 2
-            if y_real >= y_middle:
-                y += sy
+            if sy == 1:
+                if y_real >= y_middle:
+                    y += sy
+            else:
+                if y_real < y_middle:
+                    y += sy
+
     else:  # higher half
         a = dx / dy
         b = x_start - a * y_start
@@ -64,8 +67,13 @@ def get_bresenham_line(point_start, point_end):
             y += sy
             x_real = a * y + b
             x_middle = x + sx / 2
-            if x_real >= x_middle:
-                x += sx
+            if sx == 1:
+                if x_real >= x_middle:
+                    x += sx
+            else:
+                if x_real < x_middle:
+                    x += sx
+
     points.append((x, y))
     return points
 
@@ -124,5 +132,3 @@ def get_image_path(args):
         print('You must specify image path using --image_path option.')
         sys.exit()
     return image_path
-
-
