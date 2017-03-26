@@ -36,7 +36,7 @@ def get_args():
 
 
 def get_alpha(args):
-    alpha = int(args.get("alpha", False))
+    alpha = float(args.get("alpha", False))
     if not alpha:
         print('You must specify alpha angle using --alpha option.')
         sys.exit()
@@ -44,7 +44,7 @@ def get_alpha(args):
 
 
 def get_detectors_number(args):
-    detectors = float(args.get("detectors", False))
+    detectors = int(args.get("detectors", False))
     if not detectors:
         print('You must specify number of detectors using --detectors option.')
         sys.exit()
