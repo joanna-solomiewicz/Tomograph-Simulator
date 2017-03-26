@@ -11,15 +11,15 @@ def main():
 
     image = imread_square(image_path)
     plt.imshow(image, cmap='gray')
-    plt.show()
+    plt.savefig('image.jpg')
 
     image_sinogram = radon_transform(alpha, detectors_number, detectors_range, image)
     plt.imshow(image_sinogram, cmap='gray')
-    plt.show()
+    plt.savefig('sinogram.jpg')
 
     sinogram_image = image_reconstruction(alpha, detectors_number, detectors_range, image_sinogram, image.shape[0])
     plt.imshow(sinogram_image, cmap='gray')
-    plt.show()
+    plt.savefig('image_reconstructed.jpg')
 
 
 if __name__ == '__main__':
