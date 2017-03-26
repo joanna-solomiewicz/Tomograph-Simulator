@@ -239,11 +239,13 @@ class IterationResultPage(tk.Frame):
         self.tk_output_image.pack(side="bottom")
 
         tk_frame_menu = tk.Frame(self)
-        tk_frame_menu.pack(side="bottom", fill=tk.X)
+        tk_frame_menu.pack(side="bottom", pady=30, fill=tk.X)
+        tk.Label(tk_frame_menu, text="Progress [%]")\
+            .pack(side="left")
         self.tk_percentage_scale = tk.Scale(tk_frame_menu, from_=0, to=100, length=300, orient=tk.HORIZONTAL)
         self.tk_percentage_scale.pack(side="left")
-        tk.Button(tk_frame_menu, text="OK", command=self.update_output) \
-            .pack(side="left")
+        tk.Button(tk_frame_menu, text="Run", command=self.update_output) \
+            .pack(side="left", padx=10)
         tk.Button(tk_frame_menu, text="Quit", command=controller.quit_app) \
             .pack(side="right")
 
