@@ -82,16 +82,17 @@ class StartPage(tk.Frame):
         tk_frame_menu.pack(side="bottom", pady=(15, 0))
 
         self.full_tomography_button = tk.Button(tk_frame_menu, text="Full tomography",
-                                                command=self.start_app, state='disabled')
+                                                command=lambda: self.start_app(FinalResultPage), state='disabled')
         self.full_tomography_button.pack(side="left", padx=3)
         self.iteration_tomography_button = tk.Button(tk_frame_menu, text="Iteration tomography",
-                                                     command=self.start_app, state='disabled')
+                                                     command=lambda: self.start_app(IterationResultPage),
+                                                     state='disabled')
         self.iteration_tomography_button.pack(side="left", padx=3)
 
         tk.Button(tk_frame_menu, text='Quit', command=controller.quit_app) \
             .pack(side="left", padx=10)
 
-    def start_app(self):
+    def start_app(self, ResultPage):
         self.controller.show_frame(
             ResultPage(float(self.alpha_entry.get()), int(self.detectors_number_entry.get()),
                        float(self.detectors_range_entry.get()), self.image_entry.get(),
@@ -154,40 +155,42 @@ class StartPage(tk.Frame):
         self.iteration_tomography_button['state'] = 'active'
 
 
-class ResultPage(tk.Frame):
+class FinalResultPage(tk.Frame):
     def __init__(self, alpha, detectors_number, detectors_range, image_path, controller, parent=None):
         super().__init__(parent)
 
         image = tgraph.imread_square(image_path)
-        image_sinogram = tgraph.radon_transform(alpha, detectors_number, detectors_range, image)
+        sinogram = tgraph.radon_transform(alpha, detectors_number, detectors_range, image)
 
         tk_frame_images = tk.Frame(self)
         tk_frame_images.pack(side="top")
 
         tk_frame_input = tk.Frame(tk_frame_images)
         tk_frame_input.pack(side="left", padx=10, pady=10)
-        input_image = image_from_array(image, size=(300,300))
+        input_image = image_from_array(image, size=(300, 300))
         tk.Label(tk_frame_input, text="Input image") \
             .pack(side="top", fill=tk.X)
-        tk_input_image = tk.Label(tk_frame_input, image=input_image, width=300)
+        tk_input_image = tk.Label(tk_frame_input, image=input_image, width=300, height=300)
         tk_input_image.image = input_image
         tk_input_image.pack(side="bottom")
 
         tk_frame_sinogram = tk.Frame(tk_frame_images)
         tk_frame_sinogram.pack(side="left", padx=10, pady=10)
-        sinogram_image = image_from_array(image_sinogram, size=(150,600))
+        sinogram_image = image_from_array(sinogram, size=(150, 600))
         tk.Label(tk_frame_sinogram, text="Sinogram") \
             .pack(side="top")
-        tk_sinogram_image = tk.Label(tk_frame_sinogram, image=sinogram_image, width=150)
+        tk_sinogram_image = tk.Label(tk_frame_sinogram, image=sinogram_image, width=150, height=600)
         tk_sinogram_image.image = sinogram_image
         tk_sinogram_image.pack(side="bottom")
 
         tk_frame_output = tk.Frame(tk_frame_images)
         tk_frame_output.pack(side="left", padx=10, pady=10)
-        output_image = image_from_array(image, size=(300,300))
+        output = tgraph.image_reconstruction(alpha, detectors_number, detectors_range, sinogram,
+                                             image.shape[0])
+        output_image = image_from_array(output, size=(300, 300))
         tk.Label(tk_frame_output, text="Output image") \
             .pack(side="top")
-        tk_output_image = tk.Label(tk_frame_output, image=output_image, width=300)
+        tk_output_image = tk.Label(tk_frame_output, image=output_image, width=300, height=300)
         tk_output_image.image = output_image
         tk_output_image.pack(side="bottom")
 
@@ -195,3 +198,79 @@ class ResultPage(tk.Frame):
         tk_frame_menu.pack(side="bottom", fill=tk.X)
         tk.Button(tk_frame_menu, text="Quit", command=controller.quit_app) \
             .pack(side="right")
+
+
+class IterationResultPage(tk.Frame):
+    def __init__(self, alpha, detectors_number, detectors_range, image_path, controller, parent=None):
+        super().__init__(parent)
+        self.alpha = alpha
+        self.detectors_number = detectors_number
+        self.detectors_range = detectors_range
+        self.image = tgraph.imread_square(image_path)
+
+        tk_frame_images = tk.Frame(self)
+        tk_frame_images.pack(side="top")
+
+        tk_frame_input = tk.Frame(tk_frame_images)
+        tk_frame_input.pack(side="left", padx=10, pady=10)
+        input_image = image_from_array(self.image, (300, 300))
+        tk.Label(tk_frame_input, text="Input image") \
+            .pack(side="top", fill=tk.X)
+        tk_input_image = tk.Label(tk_frame_input, image=input_image, width=300, height=300)
+        tk_input_image.image = input_image
+        tk_input_image.pack(side="bottom")
+
+        tk_frame_sinogram = tk.Frame(tk_frame_images)
+        tk_frame_sinogram.pack(side="left", padx=10, pady=10)
+        sinogram_image = image_from_array(np.zeros((600, 150)))
+        tk.Label(tk_frame_sinogram, text="Sinogram") \
+            .pack(side="top")
+        self.tk_sinogram_image = tk.Label(tk_frame_sinogram, image=sinogram_image, width=150, height=600)
+        self.tk_sinogram_image.image = sinogram_image
+        self.tk_sinogram_image.pack(side="bottom")
+
+        tk_frame_output = tk.Frame(tk_frame_images)
+        tk_frame_output.pack(side="left", padx=10, pady=10)
+        output_image = image_from_array(np.zeros((300, 300)))
+        tk.Label(tk_frame_output, text="Output image") \
+            .pack(side="top")
+        self.tk_output_image = tk.Label(tk_frame_output, image=output_image, width=300, height=300)
+        self.tk_output_image.image = output_image
+        self.tk_output_image.pack(side="bottom")
+
+        tk_frame_menu = tk.Frame(self)
+        tk_frame_menu.pack(side="bottom", fill=tk.X)
+        self.tk_percentage_scale = tk.Scale(tk_frame_menu, from_=0, to=100, length=300, orient=tk.HORIZONTAL)
+        self.tk_percentage_scale.pack(side="left")
+        tk.Button(tk_frame_menu, text="OK", command=self.update_output) \
+            .pack(side="left")
+        tk.Button(tk_frame_menu, text="Quit", command=controller.quit_app) \
+            .pack(side="right")
+
+    def update_output(self):
+        percentage = int(self.tk_percentage_scale.get())
+        sinogram = tgraph.radon_transform(self.alpha, self.detectors_number,
+                                          self.detectors_range, self.image,
+                                          percentage)
+        sinogram_image = image_from_array(sinogram, (150, 600))
+        self.tk_sinogram_image.configure(image=sinogram_image)
+        self.tk_sinogram_image.image = sinogram_image
+
+        output = tgraph.image_reconstruction(self.alpha, self.detectors_number,
+                                             self.detectors_range, sinogram,
+                                             self.image.shape[0], percentage)
+        output_image = image_from_array(output, (300, 300))
+        self.tk_output_image.configure(image=output_image)
+        self.tk_output_image.image = output_image
+
+
+
+
+
+
+
+
+
+
+
+

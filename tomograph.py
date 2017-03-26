@@ -4,7 +4,6 @@ import sys
 
 import matplotlib.image as img
 import numpy as np
-from skimage.color import rgb2gray
 from scipy.spatial import distance
 
 
@@ -13,9 +12,11 @@ def radon_transform(alpha, detectors_number, detectors_range, image, percentage=
     sinogram_length = np.arange(0, 360, alpha).__len__()
     sinogram_width = int(detectors_number)
     sinogram = np.zeros((sinogram_length, sinogram_width))
-    iterations = sinogram_length * percentage/100
+    iterations = sinogram_length * percentage / 100
 
     for i, emitter_angle in enumerate(np.arange(0, 360, alpha)):
+        if i >= iterations:
+            break
         emitter_x = image_width / 2 + math.cos(math.radians(emitter_angle)) * (image_width / 2)
         emitter_y = image_width / 2 - math.sin(math.radians(emitter_angle)) * (image_width / 2)
         sinogram_line = []
@@ -31,17 +32,19 @@ def radon_transform(alpha, detectors_number, detectors_range, image, percentage=
             pixel_sum = sum([image[point[0] - 1, point[1] - 1] for point in line_points]) * normalization_factor
             sinogram_line.append(pixel_sum)
         sinogram[i] = sinogram_line
-        if i >= iterations:
-            break
     return np.array(sinogram)
 
 
-def image_reconstruction(alpha, detectors_number, detectors_range, sinogram, image_width):
+def image_reconstruction(alpha, detectors_number, detectors_range, sinogram, image_width, percentage=100):
     image = np.zeros((image_width, image_width))
     i = 0
     j = 0
+    sinogram_length = np.arange(0, 360, alpha).__len__()
+    iterations = sinogram_length * percentage / 100
 
     for emitter_angle in np.arange(0, 360, alpha):
+        if i >= iterations:
+            break
         emitter_x = image_width / 2 + math.cos(math.radians(emitter_angle)) * (image_width / 2)
         emitter_y = image_width / 2 - math.sin(math.radians(emitter_angle)) * (image_width / 2)
         for detector_angle in np.linspace(emitter_angle + math.degrees(math.pi) - detectors_range / 2,
@@ -51,12 +54,14 @@ def image_reconstruction(alpha, detectors_number, detectors_range, sinogram, ima
             detector_y = image_width / 2 - math.sin(math.radians(detector_angle)) * (image_width / 2)
             line_points = get_bresenham_line((int(emitter_x), int(emitter_y)), (int(detector_x), int(detector_y)))
             for point in line_points:
-                image[point[0]-1][point[1]-1] += sinogram[i][j]
+                image[point[0] - 1][point[1] - 1] += sinogram[i][j]
             j += 1
         j = 0
         i += 1
 
-    return np.array(image)
+    if image.max() != 0:
+        image = image / image.max() * 255
+    return image
 
 
 def get_bresenham_line(point_start, point_end):
