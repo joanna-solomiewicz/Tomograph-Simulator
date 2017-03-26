@@ -1,12 +1,9 @@
-from gui import TomographView
-import wx
+import gui
 
 
 def main():
-    app = wx.App()
-    TomographView(None)
-    app.MainLoop()
-
+    app = gui.TomographApplication()
+    app.mainloop()
 
 if __name__ == '__main__':
     main()

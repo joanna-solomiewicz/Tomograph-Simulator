@@ -104,7 +104,9 @@ def get_bresenham_line(point_start, point_end):
 
 
 def imread_square(image_path):
-    image = rgb2gray(img.imread(image_path))
+    image = img.imread(image_path)
+    if len(image.shape) == 3:
+        image = image[:, :, 0]
     if image is None:
         print('Unable to open image.')
         sys.exit()
