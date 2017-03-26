@@ -1,10 +1,10 @@
-import argparse
 import math
 import sys
 
 import matplotlib.image as img
 import numpy as np
 from scipy.spatial import distance
+from scipy import signal as sg
 
 
 def radon_transform(alpha, detectors_number, detectors_range, image, percentage=100):
@@ -31,7 +31,7 @@ def radon_transform(alpha, detectors_number, detectors_range, image, percentage=
                                    / len(line_points) / image_width
             pixel_sum = sum([image[point[0] - 1, point[1] - 1] for point in line_points]) * normalization_factor
             sinogram_line.append(pixel_sum)
-        sinogram[i] = sinogram_line
+        sinogram[i] = filter(sinogram_line)
     return np.array(sinogram)
 
 
@@ -108,6 +108,25 @@ def get_bresenham_line(point_start, point_end):
     return points
 
 
+def filter(row):
+    f = create_kernel(len(row))
+    convolve = sg.convolve(row, f, "same")
+    return convolve
+
+
+def create_kernel(size):
+    f = []
+    middle = size // 2
+    for i in range(0, size):
+        if i == middle:
+            f.append(1)
+        elif i % 2 == 0:
+            f.append(0)
+        else:
+            f.append((-4 / math.pow(math.pi, 2)) / math.pow((i - middle), 2))
+    return f
+
+
 def imread_square(image_path):
     image = img.imread(image_path)
     if len(image.shape) == 3:
@@ -120,47 +139,3 @@ def imread_square(image_path):
         print('Image must be a square.')
         sys.exit()
     return image
-
-
-def get_args():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-a", "--alpha", help="")
-    ap.add_argument("-n", "--detectors", help="")
-    ap.add_argument("-l", "--range", help="")
-    ap.add_argument("-i", "--image_path", help="")
-    return vars(ap.parse_args())
-
-
-def get_alpha(args):
-    alpha = int(args.get("alpha", False))
-    if not alpha:
-        print('You must specify alpha angle using --alpha option.')
-        sys.exit()
-    return alpha
-
-
-def get_detectors_number(args):
-    detectors = float(args.get("detectors", False))
-    if not detectors:
-        print('You must specify number of detectors using --detectors option.')
-        sys.exit()
-    return detectors
-
-
-def get_detectors_range(args):
-    range = float(args.get("range", False))
-    if not range:
-        print('You must specify range using --range option.')
-        sys.exit()
-    if not (0 <= range <= 360):
-        print('Range must be angle between 0 and 360.')
-        sys.exit()
-    return range
-
-
-def get_image_path(args):
-    image_path = args.get("image_path", False)
-    if not image_path:
-        print('You must specify image path using --image_path option.')
-        sys.exit()
-    return image_path
