@@ -5,14 +5,17 @@ import sys
 import matplotlib.image as img
 import numpy as np
 from skimage.color import rgb2gray
-import skimage.draw as draw
 from scipy.spatial import distance
 
 
-def radon_transform(alpha, detectors_number, detectors_range, image):
+def radon_transform(alpha, detectors_number, detectors_range, image, percentage=100):
     image_width = image.shape[0]
-    sinogram = []
-    for emitter_angle in np.arange(0, 360, alpha):
+    sinogram_length = np.arange(0, 360, alpha).__len__()
+    sinogram_width = int(detectors_number)
+    sinogram = np.zeros((sinogram_length, sinogram_width))
+    iterations = sinogram_length * percentage/100
+
+    for i, emitter_angle in enumerate(np.arange(0, 360, alpha)):
         emitter_x = image_width / 2 + math.cos(math.radians(emitter_angle)) * (image_width / 2)
         emitter_y = image_width / 2 - math.sin(math.radians(emitter_angle)) * (image_width / 2)
         sinogram_line = []
@@ -23,14 +26,13 @@ def radon_transform(alpha, detectors_number, detectors_range, image):
             detector_y = image_width / 2 - math.sin(math.radians(detector_angle)) * (image_width / 2)
             line_points = get_bresenham_line((int(emitter_x), int(emitter_y)), (int(detector_x), int(detector_y)))
 
-            # line_x, line_y = draw.line(int(emitter_x), int(emitter_y), int(detector_x), int(detector_y))
-            # line_points = list(zip(line_x, line_y))
-
             normalization_factor = distance.euclidean((emitter_x, emitter_y), (detector_x, detector_y)) \
                                    / len(line_points) / image_width
             pixel_sum = sum([image[point[0] - 1, point[1] - 1] for point in line_points]) * normalization_factor
             sinogram_line.append(pixel_sum)
-        sinogram.append(sinogram_line)
+        sinogram[i] = sinogram_line
+        if i >= iterations:
+            break
     return np.array(sinogram)
 
 
