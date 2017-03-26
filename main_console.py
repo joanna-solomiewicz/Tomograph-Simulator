@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from tomograph import *
 
+
 def main():
     args = get_args()
     alpha = get_alpha(args)
@@ -15,6 +16,7 @@ def main():
     plt.imshow(image_sinogram)
 
     plt.show()
+
 
 if __name__ == '__main__':
     main()

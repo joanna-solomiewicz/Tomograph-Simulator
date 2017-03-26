@@ -9,7 +9,6 @@ import skimage.draw as draw
 from scipy.spatial import distance
 
 
-
 def radon_transform(alpha, detectors_number, detectors_range, image):
     image_width = image.shape[0]
     sinogram = []
@@ -71,7 +70,9 @@ def get_bresenham_line(point_start, point_end):
 
 
 def imread_square(image_path):
-    image = rgb2gray(img.imread(image_path))
+    image = img.imread(image_path)
+    if len(image.shape) == 3:
+        image = image[:, :, 0]
     if image is None:
         print('Unable to open image.')
         sys.exit()
@@ -124,5 +125,3 @@ def get_image_path(args):
         print('You must specify image path using --image_path option.')
         sys.exit()
     return image_path
-
-
