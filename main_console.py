@@ -7,13 +7,17 @@ def main():
     detectors_number = get_detectors_number(args)
     detectors_range = get_detectors_range(args)
     image_path = get_image_path(args)
+
     image = imread_square(image_path)
     plt.imshow(image)
     plt.show()
+
     image_sinogram = radon_transform(alpha, detectors_number, detectors_range, image)
-
     plt.imshow(image_sinogram)
+    plt.show()
 
+    sinogram_image = image_reconstruction(alpha, detectors_number, detectors_range, image_sinogram, image.shape[0])
+    plt.imshow(sinogram_image)
     plt.show()
 
 if __name__ == '__main__':

@@ -34,6 +34,29 @@ def radon_transform(alpha, detectors_number, detectors_range, image):
     return np.array(sinogram)
 
 
+def image_reconstruction(alpha, detectors_number, detectors_range, sinogram, image_width):
+    image = np.zeros((image_width, image_width))
+    i = 0
+    j = 0
+
+    for emitter_angle in np.arange(0, 360, alpha):
+        emitter_x = image_width / 2 + math.cos(math.radians(emitter_angle)) * (image_width / 2)
+        emitter_y = image_width / 2 - math.sin(math.radians(emitter_angle)) * (image_width / 2)
+        for detector_angle in np.linspace(emitter_angle + math.degrees(math.pi) - detectors_range / 2,
+                                          emitter_angle + math.degrees(math.pi) + detectors_range / 2,
+                                          detectors_number):
+            detector_x = image_width / 2 + math.cos(math.radians(detector_angle)) * (image_width / 2)
+            detector_y = image_width / 2 - math.sin(math.radians(detector_angle)) * (image_width / 2)
+            line_points = get_bresenham_line((int(emitter_x), int(emitter_y)), (int(detector_x), int(detector_y)))
+            for point in line_points:
+                image[point[0]-1][point[1]-1] += sinogram[i][j]
+            j += 1
+        j = 0
+        i += 1
+
+    return np.array(image)
+
+
 def get_bresenham_line(point_start, point_end):
     points = []
     x_start, y_start = point_start
